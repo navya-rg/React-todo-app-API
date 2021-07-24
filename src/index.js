@@ -23,6 +23,9 @@ var db = new sqlite3.Database(path.resolve('./src/assets', 'db.sqlite'), (err) =
 var ListService = require('./modules/list-service');
 ListService = new ListService(db);
 
+var TaskService = require('./modules/task-service');
+TaskService = new TaskService(db);
+
 var InitDB = require('./modules/init-db');
 InitDB = new InitDB(db);
 
@@ -42,6 +45,10 @@ app.get('/get-all-lists', (req, res) => {
     sendResponse(ListService.getAllLists, req, res);
 });
 
+app.get('/get-list/:id', (req, res) => {
+    sendResponse(ListService.getList, req.params, res);
+});
+
 app.post('/new-list', (req, res) => {
     sendResponse(ListService.createNewList, req.body, res);
 });
@@ -56,6 +63,32 @@ app.put('/star-list', (req, res) => {
 
 app.delete('/delete-list/:id', (req, res) => {
     sendResponse(ListService.deleteList, req.params, res);
+});
+
+// TASK FUNCTIONALITIES
+
+app.get('/get-all-tasks', (req, res) => {
+    sendResponse(TaskService.getAllTasks, req, res);
+});
+
+app.get('/get-tasks/:listId', (req, res) => {
+    sendResponse(TaskService.getTasks, req.params, res);
+});
+
+app.post('/new-task', (req, res) => {
+    sendResponse(TaskService.createNewTask, req.body, res);
+});
+
+app.put('/update-task', (req, res) => {
+    sendResponse(TaskService.updateTask, req.body, res);
+});
+
+app.put('/complete-task', (req, res) => {
+    sendResponse(TaskService.completeTask, req.body, res);
+});
+
+app.delete('/delete-task/:id', (req, res) => {
+    sendResponse(TaskService.deleteTask, req.params, res);
 });
 
 app.get('/create-tables', (req, res) => {

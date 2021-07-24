@@ -1,21 +1,22 @@
-module.exports = function ListService(DB) {
+module.exports = function TaskService(DB) {
     const service = this;
     const db = DB;
 
-    service.getAllLists = function() {
+    service.getAllTasks = function() {
         let res = [];
 
         return new Promise((resolve, reject) => {
-            db.all("SELECT id, name, is_starred FROM lists", (err, data) => {
+            db.all(`SELECT id, list_id, message, is_complete FROM tasks`, (err, data) => {
                 if(err) {
                     reject(err);
                 }
                 if(data && data.length>0) {
-                    data.forEach(list => {
+                    data.forEach(task => {
                         res.push({
-                            id: list.id,
-                            name: list.name,
-                            isStarred: list.is_starred ? true : false
+                            id: task.id,
+                            listId: task.list_id,
+                            message: task.message,
+                            isComplete: task.is_complete ? true : false
                         });
                     });
                 }
@@ -24,49 +25,53 @@ module.exports = function ListService(DB) {
         });
     }
 
-    service.getList = function(input) {
+    service.getTasks = function(input) {
         let res = [];
 
         return new Promise((resolve, reject) => {
-            db.all(`SELECT id, name, is_starred FROM lists WHERE id=${input.id}`, (err, data) => {
+            db.all(`SELECT id, list_id, message, is_complete FROM tasks WHERE list_id=${input.listId}`, (err, data) => {
                 if(err) {
                     reject(err);
                 }
                 if(data && data.length>0) {
-                    data.forEach(list => {
+                    data.forEach(task => {
                         res.push({
-                            id: list.id,
-                            name: list.name,
-                            isStarred: list.is_starred ? true : false
+                            id: task.id,
+                            listId: task.list_id,
+                            message: task.message,
+                            isComplete: task.is_complete ? true : false
                         });
                     });
                 }
-                resolve(res[0]);
+                resolve(res);
             });
         });
     }
 
-    service.createNewList = function(input) {
+
+    service.createNewTask = function(input) {
         return new Promise((resolve, reject) => {
             db.serialize(function(err) {
                 if(err) {
                     reject(err);
                 }
-                db.run(`INSERT INTO lists (name, is_starred) VALUES ('${input.name}', false)`, function(err) {
+                var stmt = db.prepare("INSERT INTO tasks (list_id, message, is_complete) VALUES (?,?,?)");
+                stmt.run(input.listId, input.message, false, function(err) {
                     reject(err);
-                })
+                });
+                stmt.finalize();
                 resolve('Saved successfully');
             });
         });
     }
 
-    service.updateList = function(input) {
+    service.updateTask = function(input) {
         return new Promise((resolve, reject) => {
             db.serialize(function(err) {
                 if(err) {
                     reject(err);
                 }
-                db.run(`UPDATE lists SET name='${input.name}' WHERE id=${input.id}`, function(err) {
+                db.run(`UPDATE tasks SET message='${input.message}' WHERE id=${input.id}`, function(err) {
                     reject(err);
                 })
                 resolve('Updated successfully');
@@ -74,13 +79,13 @@ module.exports = function ListService(DB) {
         });
     }
 
-    service.starList = function(input) {
+    service.completeTask = function(input) {
         return new Promise((resolve, reject) => {
             db.serialize(function(err) {
                 if(err) {
                     reject(err);
                 }
-                db.run(`UPDATE lists SET is_starred=${input.isStarred} WHERE id=${input.id}`, function(err) {
+                db.run(`UPDATE tasks SET is_complete=${input.isComplete} WHERE id=${input.id}`, function(err) {
                     reject(err);
                 })
                 resolve('Updated successfully');
@@ -88,13 +93,13 @@ module.exports = function ListService(DB) {
         });
     }
 
-    service.deleteList = function(input) {
+    service.deleteTask = function(input) {
         return new Promise((resolve, reject) => {
             db.serialize(function(err) {
                 if(err) {
                     reject(err);
                 }
-                db.run(`DELETE FROM lists WHERE id=${input.id}`, function(err) {
+                db.run(`DELETE FROM tasks WHERE id=${input.id}`, function(err) {
                     reject(err);
                 })
                 resolve('Deleted successfully');
