@@ -91,11 +91,11 @@ app.delete('/delete-task/:id', (req, res) => {
     sendResponse(TaskService.deleteTask, req.params, res);
 });
 
-app.get('/create-tables', (req, res) => {
-    sendResponse(InitDB.createTables, req, res);
+app.get('/recreate-tables', (req, res) => {
+    sendResponse(InitDB.createTables, {recreate: true}, res);
 });
 
 app.listen(port, () => {
     console.log(`app listening at http://localhost:${port}`);
-    InitDB.createTables();
+    InitDB.createTables(null);
 });
